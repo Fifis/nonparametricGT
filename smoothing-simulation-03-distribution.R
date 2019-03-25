@@ -76,6 +76,7 @@ rug(X)
 plot(Xgrid, mymuhat, ylim = c(-2, 27), main = "Estimated mu in simulation #10000", bty = "n", ylab = expression(mu(x)), xlab = "x")
 curve(0.2 * x^2 + 2 * sin(x), 0, 11, add = TRUE, lwd = 2, lty = 2, col = "red")
 rug(X)
+points(X, Y, pch = 16, cex = 0.5, col = "red")
 dev.off()
 
 # Plot the distribution of the density and regression function estimator
