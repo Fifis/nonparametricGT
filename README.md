@@ -6,7 +6,7 @@ R files in this project:
 * _smoothing-functions.R_ — basic functions to work with kernels;
 * _smoothing-simulation-01-univariate.R_ — how to use these functions for one-dimensional smoothing;
 * _smoothing-simulation-02-multivariate.R_ — how to use these functions for multi-dimensional smoothing;
-* _smoothing-simulation-03-distribution_ — examining theoretical properties of kernel estimators and their distributions.
+* _smoothing-simulation-03-distribution.R_ — examining theoretical properties of kernel estimators and their distributions.
 
 PDF files in this project (with TeX sources):
 * _typeset-code.pdf_ — code with syntax highlighting and images generate by it;
