@@ -9,11 +9,11 @@
 #'
 #' Computes 5 most popular kernel functions with the potential of returning an analytical convolution kernel for density cross-validation.
 #'
-#' @param x A numeric vector of values at which to compute the kernel function. Values outside [-1, 1]
-#' @param kernel Kernel type: uniform, Epanechnikov, triangular, quartic, Gaussian
+#' @param x A numeric vector of values at which to compute the kernel function.
+#' @param kernel Kernel type: uniform, Epanechnikov, triangular, quartic, or Gaussian.
 #' @param rescale Logical: rescale to unit variance? If \code{TRUE}, ensures
-#' \eqn{\int_{-\infty}^{+\infty} x^2 k(x) = \sigma^2_k = 1}{\int_{-Inf}^{+Inf} x^2 k(x) = \sigma^2_k = 1}
-#' @param convolution Logical: return the convolution kernel? Useful for density cross-validation
+#' \eqn{\int_{-\infty}^{+\infty} x^2 k(x) = \sigma^2_k = 1}{\int_{-Inf}^{+Inf} x^2 k(x) = \sigma^2_k = 1}.
+#' @param convolution Logical: return the convolution kernel? (Useful for density cross-validation.)
 #'
 #' @return A numeric vector of the same length as input.
 #' @export
@@ -33,9 +33,9 @@
 #' for (k in all.kernels) print(integrate(function(x) kernelFun(x, kernel = k, rescale = TRUE),
 #'   lower = -Inf, upper = Inf, rel.tol = 1e-8))
 #' # Without scaling, the variance is different for different kernels
-#' for (k in all.kernels) print(integrate(function(x) x^2*kernelFun(x, kernel = k, rescale = FALSE),
+#' for (k in all.kernels) print(integrate(function(x) x^2*kernelFun(x, kernel=k, rescale=FALSE),
 #'   lower = -Inf, upper = Inf, rel.tol = 1e-8))
-#' for (k in all.kernels) print(integrate(function(x) x^2*kernelFun(x, kernel = k, rescale = TRUE),
+#' for (k in all.kernels) print(integrate(function(x) x^2*kernelFun(x, kernel=k, rescale=TRUE),
 #'   lower = -Inf, upper = Inf, rel.tol = 1e-8))
 kernelFun <- function(x,
                       kernel = c("gaussian", "uniform", "triangular", "epanechnikov", "quartic"),
@@ -75,15 +75,15 @@ kernelFun <- function(x,
 
 #' Kernel weight matrix computation
 #'
-#' @param x A numeric vector or numeric matrix of predictors
-#' @param xgrid A numeric vector or numeric matrix with \code{ncol(xgrid) = ncol(x)}
-#' @param bw Bandwidth: a scalar or a vector of the same length as ncol(x)
-#' @param kernel Passed to kernelFun
-#' @param rescale Passed to kernelFun
-#' @param convolution Passed to kernelFun
+#' @param x A numeric vector or numeric matrix of predictors.
+#' @param xgrid A numeric vector or numeric matrix with \code{ncol(xgrid) = ncol(x)}.
+#' @param bw Bandwidth: a scalar or a vector of the same length as ncol(x).
+#' @param kernel Passed to \code{kernelFun}.
+#' @param rescale Passed to \code{kernelFun}.
+#' @param convolution Passed to \code{kernelFun}.
 #'
-#' @seealso \code{\link{kernelFun}} for bare-bones kernels
-#' @return A numeric matrix of size \code{nrow(x) x nrow(xgrid)} with kernel weights
+#' @seealso \code{\link{kernelFun}} for bare-bones kernels.
+#' @return A numeric matrix of size \code{nrow(x) x nrow(xgrid)} with kernel weights.
 #' @export
 #'
 #' @examples
@@ -92,7 +92,7 @@ kernelFun <- function(x,
 #' kw <- kernelWeights(x, xgrid = seq(-3, 3, 0.05), bw = bw.rot(x))
 #' image(kw)
 #' mycols <- rainbow(length(x), end = 0.7, v = 0.8)
-#' plot(NULL, NULL, xlim = c(-3, 3), ylim = c(0, max(kw)), bty = "n", xlab = "x", ylab = "Kernel weights")
+#' plot(NULL, NULL, xlim = c(-3, 3), ylim = c(0, max(kw)), bty = "n", xlab = "x", ylab = "Weights")
 #' for (i in 1:length(x)) lines(seq(-3, 3, 0.05), kw[i, ], col = mycols[i])
 #' abline(v = x, col = mycols, lty = 3)
 kernelWeights <- function(x,
@@ -127,16 +127,16 @@ kernelWeights <- function(x,
 
 #' Kernel density estimation
 #'
-#' @param x A numeric vector or numeric matrix of predictors
-#' @param xgrid A numeric vector or numeric matrix with \code{ncol(xgrid) = ncol(x)} of points at which the density is estimated
-#' @param bw Bandwidth: a scalar or a vector of the same length as ncol(x)
-#' @param kernel Which kernel to use? Passed to \code{kernelWeights}
-#' @param rescale Passed to \code{kernelWeights}
+#' @param x A numeric vector or numeric matrix of predictors.
+#' @param xgrid A numeric vector or numeric matrix with \code{ncol(xgrid) = ncol(x)} of points at which the density is estimated.
+#' @param bw Bandwidth: a scalar or a vector of the same length as \code{ncol(x)}.
+#' @param kernel Which kernel to use? Passed to \code{kernelWeights}.
+#' @param rescale Passed to \code{kernelWeights}.
 #'
-#' @return \code{kernelDensity}: a numeric vector of kernel density estimator of \code{x} evaluated at \code{xgrid}
-#' \code{kernelSmooth}: a numeric vector of kernel regression estimator values (best predictor of \code{y} given \code{x}) evaluated at \code{xgrid}
+#' @return \code{kernelDensity}: a numeric vector of kernel density estimator of \code{x} evaluated at \code{xgrid}.
+#' \code{kernelSmooth}: a numeric vector of kernel regression estimator values (best predictor of \code{y} given \code{x}) evaluated at \code{xgrid}.
 #' @export
-#' @seealso \code{\link{kernelWeights}} for kernel weight matrix construction
+#' @seealso \code{\link{kernelWeights}} for kernel weight matrix construction.
 #'
 #' @examples
 #' set.seed(1)
@@ -185,7 +185,7 @@ kernelDensity <- function(x,
   return(dens)
 }
 
-#' @param y A numeric vector of responses (dependent variable)
+#' @param y A numeric vector of responses (dependent variable).
 #' @param LOO Logical: return the leave-one-out estimator?
 #' @rdname kernelDensity
 #' @export
@@ -235,15 +235,15 @@ bw.rot <- function(x) {
 
 #' Density and Least-Squares cross-validation criteria
 #'
-#' Density cross-validation is performed based purely on the values of \code{x} for the kernel density estimator..
+#' Density cross-validation is performed based purely on the values of \code{x} for the kernel density estimator.
 #' Least-squares cross-validation is performed for the Nadaraya-Watson estimator of E(Y|X).
 #'
-#' @param x A numeric vector or numeric matrix
-#' @param bw A numeric scalar, vector, or matrix of candidate bandwidths
-#' @param kernel Which kernel to use? Passed to \code{kernelWeights}
-#' @param rescale Passed to \code{kernelWeights}
+#' @param x A numeric vector or numeric matrix.
+#' @param bw A numeric scalar, vector, or matrix of candidate bandwidths.
+#' @param kernel Which kernel to use? Passed to \code{kernelWeights}.
+#' @param rescale Passed to \code{kernelWeights}.
 #' @param same Logical: use the same bandwidth in all dimensions for multi-variate x?
-#' @param parallel Logical: if TRUE, use \code{parallel::mclapply} to speed up computation
+#' @param parallel Logical: use \code{parallel::mclapply} to speed up computation?
 #' @param ncores The number of cores to use for parallel computation. Reset to 1 on Windows machines.
 #'
 #' @return For one-dimensional \code{x}, returns a numeric vector of the same length as \code{length(bw)}.
@@ -300,7 +300,7 @@ DCV <- function(x, bw,
   return(unlist(CV.values))
 }
 
-#' @param y A numeric vector of responses (dependent variable)
+#' @param y A numeric vector of responses (dependent variable).
 #' @rdname DCV
 #' @export
 LSCV <- function(x, y, bw,
@@ -336,19 +336,19 @@ LSCV <- function(x, y, bw,
 
 #' Bandwidth Selectors for Kernel Density Estimation
 #'
-#' @param x A numeric vector or numeric matrix
-#' @param y A numeric vector of responses (dependent variable) if \code{CV == "LSCV"}
-#' @param kernel Which kernel to use? Passed to \code{kernelWeights}
-#' @param start.bw A starting value for the optimiser. If \code{NULL}, then Silverman’s rule of thumb is applied to each column of \code{x} via \code{bw.rot}
-#' @param same Logical: use a unique single bandwidth for all columns of \code{x}? Best used if the variability of data across the columns of \code{x} is of the same order of magnitude
+#' @param x A numeric vector or numeric matrix.
+#' @param y A numeric vector of responses (dependent variable) if \code{CV == "LSCV"}.
+#' @param kernel Which kernel to use? Passed to \code{kernelWeights}.
+#' @param start.bw A starting value for the optimiser. If \code{NULL}, then Silverman’s rule of thumb is applied to each column of \code{x} via \code{bw.rot}.
+#' @param same Logical: use a unique single bandwidth for all columns of \code{x}? Best used if the variability of data across the columns of \code{x} is of the same order of magnitude.
 #' @param CV Density or least-squares cross-validation?
 #' @param opt.fun Optimiser to be used. If 'optimise', then \code{...} must contain an interval.
-#' @param ret.fun If a custom minimiser is used and returns a list, this function should extract the argmin
-#' @param par.name.in.opt If a custom minimiser is used and returns a list, this is the name of the argument corresponding to the initial parameter value
-#' @param fun.name.in.opt If a custom minimiser is used and returns a list, this is the name of the argument corresponding to the objective function to be minimised
-#' @param ... Passed to \code{opt.fun}
+#' @param ret.fun If a custom minimiser is used and returns a list, this function should extract the argmin.
+#' @param par.name.in.opt If a custom minimiser is used and returns a list, this is the name of the argument corresponding to the initial parameter value.
+#' @param fun.name.in.opt If a custom minimiser is used and returns a list, this is the name of the argument corresponding to the objective function to be minimised.
+#' @param ... Passed to \code{opt.fun}.
 #'
-#' @return An estimate of the optimal bandwidth
+#' @return An estimate of the optimal bandwidth.
 #' @importFrom stats nlm optim optimise nlminb
 #' @export
 #'
