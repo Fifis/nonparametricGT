@@ -1,9 +1,8 @@
-# R code for kernel estimator of pdf_X(x) and E(Y|X=x).
 # Original code and idea: Gautam Tripathi, 2017-03-08
 # Rewrite: Andreï V. Kostyrka
-# v1.0: 2019-03-07
-# v1.1: 2019-03-18 (fixed an error in DCV that caused severe over-smoothing)
-# v1.2: 2021-09-10 Made it into an R package
+# v0.0.1: 2019-03-07
+# v0.0.2: 2019-03-18 (fixed an error in DCV that caused severe over-smoothing)
+# v0.1: 2021-09-10 Made it into an R package, uploaded to GitHub
 
 #' Basic univatiate kernel functions
 #'
