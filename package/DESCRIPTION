@@ -1,0 +1,21 @@
+Package: nonparametricGT
+Type: Package
+Title: Functions for Basic Non-Parametric Regression and Density Estimation
+Version: 0.1.0
+Date: 2021-03-10
+Author: Andreï V. Kostyrka <fifis.himik@gmail.com>
+Maintainer: Andreï V. Kostyrka <fifis.himik@gmail.com>
+Depends: R (>= 3.4.0)
+Imports: 
+    parallel,
+    stats
+Description: Supplementary files for prof. Gautam Tripathi’s course
+    ‘Non-parametric methods‘ at the University of Luxembourg. These files
+    contain functions for easy and painless visualisation of kernels,
+    one- and multi-dimentional kernel estimation and smoothing,
+    cross-validation, and more.
+License: MIT + file LICENSE
+URL: https://github.com/Fifis/nonparametricGT/package
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
