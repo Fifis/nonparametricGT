@@ -7,7 +7,11 @@
 
 # This file is expected to run in 2 seconds for n = 100, in 6 s for n = 200, in 40 s for n = 400, and 180 s for n = 1000
 rm(list = ls()) # Clear the workspace.
-source("nonparametricGT/R/smoothing-functions.R") # Load the functions.
+
+devtools::install_github("Fifis/nonparametricGT", subdir = "package")
+library(nonparametricGT)
+# In case installation from GitHub fails, try downloading the package manually and running:
+# source("nonparametricGT/package/R/smoothing-functions.R")
 start.time <- Sys.time() # Start clock.
 set.seed(12345678) # Set seed for replication.
 write.pdf <- FALSE # Do we want plots to be shown on the screen, or to be written in PDF files?
@@ -138,6 +142,7 @@ LSCV(X, Y, opt.bw.dcv["gaussian"] * 0.8, "gaussian") # It is smaller!
 # Cross-validating the bandwidth for the Nadaraya---Watson estimator using Least Squares
 LSCV.values <- lapply(all.kernels, function(k) LSCV(X, Y, bw = bw.grid, kernel = k))
 LSCV.values <- matrix(unlist(LSCV.values), ncol = 5)
+LSCV.values[!is.finite(LSCV.values)] <- NA
 min.cv.indices <- apply(LSCV.values, 2, function(x) which.min(x))
 opt.bw.lscv <- bw.grid[min.cv.indices]
 names(opt.bw.lscv) <- all.kernels
@@ -189,6 +194,7 @@ points(X, Y, cex = 0.4, pch = 16, col = "#00000088")
 lines(Xgrid, Xgrid^2, lty = 2)
 title(main = paste0("bandwidth = ", sprintf("%1.3f", opt.bw.lscv["uniform"])), font.main = 1, line = 0)
 
-top.plot.title <- c("Density and regression estimates", paste0("n = ", n), paste0("Time(sec) = ", sprintf("%1.3f", as.numeric(seconds.taken))))
+top.plot.title <- c("Density and regression estimates", paste0("n = ", n), paste0("Time = ", sprintf("%1.3f", as.numeric(seconds.taken)), " s"))
 mtext(top.plot.title, outer = TRUE, line = 1:-1)
 dev.off()
+

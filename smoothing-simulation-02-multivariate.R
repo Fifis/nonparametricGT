@@ -221,6 +221,11 @@ contour(X1grid.fine, X2grid.fine, matrix(kernelSmooth(X, Y, mygrid.fine, opt.bw.
 mtext(top.plot.title, outer = TRUE, line = 1:-2)
 dev.off()
 
+# A new example: optimising multi-variate densities with different scales in 5 dimensions
+library(MASS)
+set.seed(1)
+X <- mvrnorm(1000, Sigma = matrix(0.2, nrow = 5, ncol = 5))
+
 # Why should we make our functions extensible? Because sometimes the minimised function is very non-linear,
 # so in this afterword, I show how to choose the bandwidth via custom optimisers or even stochastic search
 # For deterministic optimisation, I shall try Hooke-Jeeves algorithm and Mesh Adaptive Direct Search from `dfoptim`
