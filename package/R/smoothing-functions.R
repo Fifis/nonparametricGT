@@ -12,9 +12,12 @@
 #' @param kernel Kernel type: uniform, Epanechnikov, triangular, quartic, or Gaussian.
 #' @param rescale Logical: rescale to unit variance? If \code{TRUE}, ensures
 #' \eqn{\int_{-\infty}^{+\infty} x^2 k(x) = \sigma^2_k = 1}{\int_{-Inf}^{+Inf} x^2 k(x) = \sigma^2_k = 1}.
+#' This is useful because in this case, the constant \eqn{k_2}{k_2} in formulæ 3.12 and 3.21
+#' from \insertRef{silverman1986density} is equal to 1.
 #' @param convolution Logical: return the convolution kernel? (Useful for density cross-validation.)
 #'
 #' @return A numeric vector of the same length as input.
+#' @importFrom Rdpack reprompt
 #' @export
 #'
 #' @examples
@@ -213,7 +216,19 @@ kernelSmooth <- function(x, y,
 
 #' Silverman's rule-of-thumb bandwidth
 #'
-#' A fail-safe function that would return a nice Silverman-like bandwidth suggestion for data for which the standard deviation might be NA or 0.
+#' A fail-safe function that would return a nice Silverman-like bandwidth suggestion for data for which
+#' the standard deviation might be NA or 0.
+#'
+#' It is obtained under the assumption that the true density is multivariate normal with zero covariances
+#' (i.e. a diagonal variance-covariance matrix
+#' \eqn{\Sigma = \mathrm{\mathop{diag}}(\sigma^2_k)}{\Sigma = diag(\sigma^2_k)} with
+#' \eqn{\det \Sigma = \prod_k \sigma^2_k}{det \Sigma = prod(\sigma^2_k)} and \eqn{\Sigma^{-1} = diag(\sigma^{-2}_k)}{\Sigma = diag(1/\sigma^2_k)}).
+#' Then, the formula 4.12 in Silverman (1986) depends only on \eqn{\alpha}{\alpha}, \eqn{\beta}{\beta}
+#' (which depend only on the kernel and are fixed for a multivariate normal), and on the L2-norm of the
+#' second derivative of the density. The (i, i)th element of the Hessian of multi-variate normal
+#' (\eqn{\phi(x_1, \ldots, x_d) = \phi(X)}{\phi(x_1, ..., x_d) = \phi(X)}) is
+#' \eqn{\phi(X)(x_i^2 - \sigma^2_i)/\sigma_i^4}{\phi(X)(x_i^2 - \sigma^2_i)/\sigma_i^4}.
+#'
 #' @param x A numeric vector without non-finite values.
 #' @return A bandwidth that might be optimal for non-parametric density estimation of \code{x}.
 #' @examples
@@ -221,7 +236,11 @@ kernelSmooth <- function(x, y,
 #' bw.rot(rnorm(100)) # Should be 0.3787568 in R version 4.0.4
 #' @export
 bw.rot <- function(x) {
-  s <- stats::sd(x)
+  one.dim <- is.vector(x) # Are our data one-dimensional?
+  if (one.dim) x <- matrix(x, ncol = 1)
+  d <- ncol(x)
+  s <- apply(x, 2, stats::sd)
+  AK <- (4 / (2*d + 1))^(1 / (d + 4)) # (4.15) from Silverman (1986)
   if (!is.finite(s)) {
     stop("bw.rot: Could not compute the bandwidth, check your data, most likely it has length 1.")
   } else if (s > 0) {
@@ -335,6 +354,14 @@ LSCV <- function(x, y, bw,
 
 #' Bandwidth Selectors for Kernel Density Estimation
 #'
+#' Finds the optimal bandwidth by minimising the density cross-valication or least-squares criteria.
+#' Remember that since usually, the CV function is highly non-linear, the return value should be taken with a grain of salt.
+#' With non-smooth kernels (such as uniform), it will oftern return the local minimum after starting from a reasonable value.
+#' The user might want to standardise the input matrix \code{x} by column (divide by some estimator of scale, like \code{sd}
+#' or \code{IQR}) and examine the behaviour of the CV criterion as a function of unique bandwidth (\code{same} argument).
+#' If it seems that the optimum is unique, then they may proceed by multiplying the bandwidth by the scale measure,
+#' and start the search for the optimal bandwidth in multiple dimensions.
+#'
 #' @param x A numeric vector or numeric matrix.
 #' @param y A numeric vector of responses (dependent variable) if \code{CV == "LSCV"}.
 #' @param kernel Which kernel to use? Passed to \code{kernelWeights}.
@@ -390,7 +417,7 @@ bw.CV <- function(x, y = NULL, kernel = "gaussian", start.bw = NULL, same = FALS
     if (is.null(start.bw)) start.bw <- apply(x, 2, bw.rot)
   }
   opt.result <- switch(opt.fun,
-                       nlm = suppressWarnings(stats::nlm(f = f.to.min, p = start.bw, ...)),
+                       nlm = stats::nlm(f = f.to.min, p = start.bw, ...),
                        optim = stats::optim(par = start.bw, fn = f.to.min, ...),
                        optimise = stats::optimise(f = f.to.min, ...),
                        nlminb = stats::nlminb(start = start.bw, objective = f.to.min, ...))
@@ -402,5 +429,85 @@ bw.CV <- function(x, y = NULL, kernel = "gaussian", start.bw = NULL, same = FALS
     opt.result <- do.call(opt, args = arg.list)
   }
   return(ret.fun(opt.result))
+}
+
+#' Density with conditioning on discrete and continuous variables
+#'
+#' @param x A numeric vector or a numeric matrix of continuous predictors
+#' @param by An integer defining the grouping (all possible unique combinations of discrete predictor values)
+#' @param xgrid A numeric vector or numeric matrix with \code{ncol(xgrid) = ncol(x)} of points at which the density is estimated.
+#' @param bygrid An integer defining the grouping for the grid (all possible unique combinations of discrete predictor values)
+#' @param bw Bandwidth: a scalar or a vector of the same length as \code{ncol(x)}.
+#' @param ... Passed to kernelDensity.
+#'
+#' @return A numeric vector of kernel density estimator of \code{x} evaluated at \code{xgrid}.
+#' @export
+#' @seealso \code{\link{kernelDensity}} for the underlying function.
+#'
+#' @examples
+kernelMixedDensity <- function(x,
+                               by,
+                               xgrid = NULL,
+                               bygrid = NULL,
+                               bw,
+                               ...
+) {
+  by <- as.integer(by)
+  one.dim <- is.vector(x)
+  if (is.null(xgrid)) xgrid <- x
+  if (is.null(bygrid)) bygrid <- by
+  ngrid <- if (one.dim) length(xgrid) else nrow(xgrid)
+  x.tab <- table(by)
+  n <- sum(x.tab)
+  res <- numeric(ngrid)
+  for (v in sort(unique(by))) {
+    s <- by == v
+    g <- bygrid == v
+    prob <- sum(s) / n
+    x.sub <- if (one.dim) x[s] else x[s, ]
+    xgrid.sub <- if (one.dim) xgrid[g] else xgrid[g, ]
+    res[g] <- kernelDensity(x = x.sub, xgrid = xgrid.sub, bw = bw, ...) * prob
+  }
+  return(res)
+}
+
+#' Kernel smoothing with conditioning on discrete and continuous variables
+#'
+#' @param x A numeric vector or a numeric matrix of continuous predictors
+#' @param y A numeric vector of responses (dependent variable).
+#' @param by An integer defining the grouping (all possible unique combinations of discrete predictor values)
+#' @param xgrid A numeric vector or numeric matrix with \code{ncol(xgrid) = ncol(x)} of points at which the density is estimated.
+#' @param bygrid An integer defining the grouping for the grid (all possible unique combinations of discrete predictor values)
+#' @param bw Bandwidth: a scalar or a vector of the same length as \code{ncol(x)}.
+#' @param ... Passed to kernelSmooth.
+#'
+#' @return A numeric vector of kernel density estimator of \code{x} evaluated at \code{xgrid}.
+#' @export
+#' @seealso \code{\link{kernelSmooth}} for the underlying function.
+#'
+#' @examples
+kernelMixedSmooth <- function(x,
+                              y,
+                              by,
+                              xgrid = NULL,
+                              bygrid = NULL,
+                              bw,
+                              ...
+) {
+  by <- as.integer(by)
+  one.dim <- is.vector(x)
+  if (is.null(xgrid)) xgrid <- x
+  if (is.null(bygrid)) bygrid <- by
+  ngrid <- if (one.dim) length(xgrid) else nrow(xgrid)
+  res <- numeric(ngrid)
+  for (v in sort(unique(by))) {
+    s <- by == v
+    g <- bygrid == v
+    x.sub <- if (one.dim) x[s] else x[s, ]
+    y.sub <- y[s]
+    xgrid.sub <- if (one.dim) xgrid[g] else xgrid[g, ]
+    res[g] <- kernelSmooth(x = x.sub, y = y.sub, xgrid = xgrid.sub, bw = bw, ...)
+  }
+  return(res)
 }
 
