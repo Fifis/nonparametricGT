@@ -1,0 +1,13 @@
+citHeader("Please cite this material in publications as:")
+
+citEntry(
+  entry="Manual",
+  title = "nonparametricGT: Pure Kernel Density and Regression Estimation Functions for professor Gautam Tripathi's course",
+  author = as.person("Andreï V. Kostyrka"),
+  year = "2021",
+  note = "R package version 0.2.1",
+  organization = "University of Luxembourg",
+  address = "Luxembourg",
+  textVersion = "Kostyrka, Andreï V. (2021). nonparametricGT: Pure Kernel Density and Regression Estimation Functions for professor Tripathi's course. R package version 0.2.1. https://github.com/Fifis/nonparametricGT",
+  url = "https://github.com/Fifis/nonparametricGT"
+)
