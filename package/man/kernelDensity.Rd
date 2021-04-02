@@ -5,7 +5,14 @@
 \alias{kernelSmooth}
 \title{Kernel density estimation}
 \usage{
-kernelDensity(x, xgrid = NULL, bw = NULL, kernel = "gaussian", rescale = TRUE)
+kernelDensity(
+  x,
+  xgrid = NULL,
+  bw = NULL,
+  kernel = "gaussian",
+  order = 2,
+  rescale = TRUE
+)
 
 kernelSmooth(
   x,
@@ -13,6 +20,7 @@ kernelSmooth(
   xgrid = NULL,
   bw = NULL,
   kernel = "gaussian",
+  order = 2,
   rescale = TRUE,
   LOO = FALSE
 )
@@ -24,7 +32,9 @@ kernelSmooth(
 
 \item{bw}{Bandwidth: a scalar or a vector of the same length as \code{ncol(x)}.}
 
-\item{kernel}{Which kernel to use? Passed to \code{kernelWeights}.}
+\item{kernel}{Passed to \code{kernelWeights}.}
+
+\item{order}{Passed to \code{kernelWeights}.}
 
 \item{rescale}{Passed to \code{kernelWeights}.}
 

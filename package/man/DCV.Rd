@@ -8,8 +8,9 @@
 DCV(
   x,
   bw,
-  kernel = "gaussian",
   same = FALSE,
+  kernel = "gaussian",
+  order = 2,
   rescale = TRUE,
   parallel = FALSE,
   ncores = 2
@@ -19,8 +20,9 @@ LSCV(
   x,
   y,
   bw,
-  kernel = "gaussian",
   same = FALSE,
+  kernel = "gaussian",
+  order = 2,
   rescale = TRUE,
   parallel = FALSE,
   ncores = 2
@@ -31,9 +33,11 @@ LSCV(
 
 \item{bw}{A numeric scalar, vector, or matrix of candidate bandwidths.}
 
+\item{same}{Logical: use the same bandwidth in all dimensions for multi-variate x?}
+
 \item{kernel}{Which kernel to use? Passed to \code{kernelWeights}.}
 
-\item{same}{Logical: use the same bandwidth in all dimensions for multi-variate x?}
+\item{order}{Passed to \code{kernelWeights}.}
 
 \item{rescale}{Passed to \code{kernelWeights}.}
 

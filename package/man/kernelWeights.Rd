@@ -9,6 +9,7 @@ kernelWeights(
   xgrid = NULL,
   bw,
   kernel = "gaussian",
+  order = 2,
   rescale = TRUE,
   convolution = FALSE
 )
@@ -21,6 +22,8 @@ kernelWeights(
 \item{bw}{Bandwidth: a scalar or a vector of the same length as ncol(x).}
 
 \item{kernel}{Passed to \code{kernelFun}.}
+
+\item{order}{Passed to \code{kernelFun}.}
 
 \item{rescale}{Passed to \code{kernelFun}.}
 

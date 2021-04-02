@@ -8,6 +8,7 @@ bw.CV(
   x,
   y = NULL,
   kernel = "gaussian",
+  order = 2,
   start.bw = NULL,
   same = FALSE,
   CV = c("DCV", "LSCV"),
@@ -24,6 +25,8 @@ bw.CV(
 \item{y}{A numeric vector of responses (dependent variable) if \code{CV == "LSCV"}.}
 
 \item{kernel}{Which kernel to use? Passed to \code{kernelWeights}.}
+
+\item{order}{Passed to \code{kernelWeights}.}
 
 \item{start.bw}{A starting value for the optimiser. If \code{NULL}, then Silverman’s rule of thumb is applied to each column of \code{x} via \code{bw.rot}.}
 
@@ -45,7 +48,13 @@ bw.CV(
 An estimate of the optimal bandwidth.
 }
 \description{
-Bandwidth Selectors for Kernel Density Estimation
+Finds the optimal bandwidth by minimising the density cross-valication or least-squares criteria.
+Remember that since usually, the CV function is highly non-linear, the return value should be taken with a grain of salt.
+With non-smooth kernels (such as uniform), it will oftern return the local minimum after starting from a reasonable value.
+The user might want to standardise the input matrix \code{x} by column (divide by some estimator of scale, like \code{sd}
+or \code{IQR}) and examine the behaviour of the CV criterion as a function of unique bandwidth (\code{same} argument).
+If it seems that the optimum is unique, then they may proceed by multiplying the bandwidth by the scale measure,
+and start the search for the optimal bandwidth in multiple dimensions.
 }
 \examples{
 set.seed(1)
@@ -53,17 +62,33 @@ x <- rnorm(100)
 y <- x^2 + rnorm(100)
 plot(x, y, bty = "n")
 bw.grid <- seq(0.12, 1, length.out = 101)
-DCV.vals1 <- DCV(x = x, bw = bw.grid)
-DCV.vals2 <- DCV(x = x, bw = bw.grid, kernel = "epanechnikov")
-DCV.vals3 <- LSCV(x = x, y = y, bw = bw.grid, kernel = "epanechnikov")
-DCV.vals1 <- (DCV.vals1 - min(DCV.vals1)) / diff(range(DCV.vals1))
-DCV.vals2 <- (DCV.vals2 - min(DCV.vals2)) / diff(range(DCV.vals2))
-DCV.vals3 <- (DCV.vals3 - min(DCV.vals3)) / diff(range(DCV.vals3))
-plot(bw.grid, DCV.vals1 - min(DCV.vals1), type = "l", bty = "n",
-  xlab = "Bandwidth", ylab = "CV criterion")
-lines(bw.grid, DCV.vals2, lty = 2)
-lines(bw.grid, DCV.vals3, lwd = 2, col = "red")
-bw.CV(x)
-bw.CV(x, kernel = "epanechnikov", start.bw = 0.5, opt.fun = "optim", method = "BFGS")
-bw.CV(x, y = y, kernel = "epanechnikov", CV = "LSCV")
+pars <- expand.grid(k = c("triangular", "gaussian"), o = c(2, 4, 6), stringsAsFactors = FALSE)
+DCV.vals <- lapply(1:6, function(i) DCV(x, bw.grid, kernel = pars$k[i], order = pars$o[i]))
+LSCV.vals <- lapply(1:6, function(i) LSCV(x, y, bw.grid, kernel = pars$k[i], order = pars$o[i]))
+DCV.vals <- lapply(DCV.vals, function(x) (x - min(x))/diff(quantile(x, c(0, 0.9))))
+LSCV.vals <- lapply(LSCV.vals, function(x) (x - min(x)) / diff(quantile(x, c(0, 0.80))))
+
+par(mfrow = c(1, 2))
+plot(NULL, NULL, bty = "n", xlab = "Bandwidth", ylab = "DCV", xlim=c(0.13, 1), ylim=c(0, 1))
+lapply(seq_along(DCV.vals), function(i) {
+  lines(bw.grid, DCV.vals[[i]], col = round(i/2 + 0.1), lty = 2 - i \%\% 2)
+  points(bw.grid[which.min(DCV.vals[[i]])], min(DCV.vals[[i]]), col = ceiling(i/2), pch = 16)
+})
+abline(v = bw.rot(x), lty = 3)
+legend("top", c("triangular", "gaussian"), lty = 1:2, bty = "n")
+plot(NULL, NULL, bty = "n", xlab = "Bandwidth", ylab = "LSCV", xlim=c(0.1, 1), ylim=c(0, 1))
+lapply(seq_along(LSCV.vals), function(i) {
+  lines(bw.grid, LSCV.vals[[i]], col = ceiling(i/2), lty = 2 - i \%\% 2)
+  points(bw.grid[which.min(LSCV.vals[[i]])], min(LSCV.vals[[i]]), col = ceiling(i/2), pch = 16)
+})
+abline(v = bw.rot(x), lty = 3)
+legend("top", paste0("Order ", c(2, 4, 6)), col = 1:3, lwd = 1, bty = "n")
+bw.CV(x) # The easiest invocation
+bw.CV(x, opt.fun = "optimise", interval = c(0.1, 1))
+bw.CV(x, opt.fun = "nlminb")
+bw.CV(x, kernel = "triangular", order = 4, start.bw = 0.5, opt.fun = "optim", method = "BFGS")
+bw.CV(x, y = y, kernel = "triangular", order = 4, CV = "LSCV")
+bw.CV(x, y = y, kernel = "triangular", order = 4, CV = "LSCV", start.bw = 0.2) # Unlucky start
+bw.CV(x, y = y, kernel = "triangular", order = 4, CV = "LSCV", start.bw = 0.82) # Unlucky start
+bw.CV(x, y = y, kernel = "triangular", order = 4, CV = "LSCV", start.bw = 0.9) # Unlucky start
 }
